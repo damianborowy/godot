@@ -1,6 +1,7 @@
 extends Node2D
 
 var Room = preload("res://Room.tscn")
+var Player = preload("res://Player.tscn")
 @onready var Map = $TileMap
 
 var tile_size = 32
@@ -18,8 +19,21 @@ var path
 
 func _ready():
 	randomize()
-	make_rooms()
+	await make_rooms()
+	await get_tree().create_timer(1.1).timeout
+	await make_map()	
+	await place_player()
 
+func place_player():
+	var player = Player.instantiate()
+	add_child(player)
+	$Camera2D.player = player
+	
+	var first_valid_room = null
+	for room in $Rooms.get_children():
+		if room.freeze == true:
+			first_valid_room = Room
+			break
 
 func make_rooms():
 	for i in range(num_rooms):
@@ -45,46 +59,8 @@ func make_rooms():
 	path = find_minimum_spanning_tree(room_positions)
 
 
-func _draw():
-	for room in $Rooms.get_children():
-		draw_rect(Rect2(room.position - room.size, room.size * 2), Color(32, 228, 0), false)
-
-	if path:
-		var existing_paths := {}
-
-		for position_id in path.get_point_ids():
-			for connection_id in path.get_point_connections(position_id):
-				var key_x = min(position_id, connection_id)
-				var key_y = max(position_id, connection_id)
-				var connection_key = "%s,%s" % [key_x, key_y]
-
-				if connection_key in existing_paths:
-					continue
-
-				existing_paths[connection_key] = null
-
-				var start_point = path.get_point_position(position_id)
-				var end_point = path.get_point_position(connection_id)
-				var intermediate_point = Vector2(start_point.x, end_point.y)
-
-				draw_line(start_point, intermediate_point, Color(1, 1, 0), 15, true)
-				draw_line(intermediate_point, end_point, Color(1, 1, 0), 15, true)
-
-
 func _process(_delta):
 	queue_redraw()
-
-
-func _input(event):
-	if event.is_action_pressed("ui_select"):
-		for n in $Rooms.get_children():
-			n.queue_free()
-
-		path = null
-		make_rooms()
-
-	if event.is_action_pressed("ui_focus_next"):
-		make_map()
 
 
 func find_minimum_spanning_tree(nodes):
@@ -126,8 +102,8 @@ func make_map():
 
 		full_rect = full_rect.merge(room_rect)
 
-	var top_left = Map.local_to_map(full_rect.position)
-	var bottom_right = Map.local_to_map(full_rect.end)
+	var top_left = Map.local_to_map(full_rect.position) + Vector2i(-1, -1)
+	var bottom_right = Map.local_to_map(full_rect.end) + Vector2i(1, 1)
 
 	for x in range(top_left.x, bottom_right.x):
 		for y in range(top_left.y, bottom_right.y):
@@ -136,7 +112,6 @@ func make_map():
 	var existing_paths := {}
 	for room in $Rooms.get_children():
 		var size = (room.size / tile_size).floor()
-		var position = Map.local_to_map(room.position)
 		var upper_left = (room.position / tile_size).floor() - size
 		
 		for x in range(size.x * 2):
@@ -157,6 +132,24 @@ func make_map():
 			var start = Map.local_to_map(path.get_point_position(position_id))
 			var end = Map.local_to_map(path.get_point_position(connection_id))
 			carve_path(start, end)
+	
+	for room in $Rooms.get_children():
+		room.get_node("CollisionShape2D").queue_free()
+	
+	for x in range(top_left.x, bottom_right.x):
+		for y in range(top_left.y, bottom_right.y):
+			var surrounding_cells = Map.get_surrounding_cells(Vector2i(x, y))
+			
+			var is_wall = false
+			for cell in surrounding_cells:
+				var cell_tile_id = Map.get_cell_source_id(0, cell)
+				
+				if cell_tile_id == 0:
+					is_wall = true
+					break
+					
+			if not is_wall:
+				Map.set_cell(0, Vector2i(x, y), -1, Vector2i.ZERO, 0)
 
 
 func carve_path(pos1, pos2):
@@ -177,7 +170,7 @@ func carve_path(pos1, pos2):
 
 	for w in (corridor_width - 1):
 		for x in range(pos1.x, pos2.x, x_diff):
-			Map.set_cell(0, Vector2i(x, start.y + (y_diff * w)), 0, Vector2i(0, 0), 0)
+			Map.set_cell(0, Vector2i(x, start.y + (y_diff * w)), 0, Vector2i.ZERO, 0)
 		for y in range(pos1.y, pos2.y, y_diff):
-			Map.set_cell(0, Vector2i(end.x + (x_diff * w), y), 0, Vector2i(0, 0), 0)
+			Map.set_cell(0, Vector2i(end.x + (x_diff * w), y), 0, Vector2i.ZERO, 0)
 

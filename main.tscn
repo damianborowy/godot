@@ -1,21 +1,28 @@
-[gd_scene load_steps=7 format=3 uid="uid://crokbqurr7008"]
+[gd_scene load_steps=8 format=3 uid="uid://crokbqurr7008"]
 
 [ext_resource type="Script" path="res://Main.gd" id="1_dkx6i"]
 [ext_resource type="Texture2D" uid="uid://cidsiyy51ac6l" path="res://assets/grass.png" id="2_66ayh"]
+[ext_resource type="Script" path="res://Camera2D.gd" id="2_kg2po"]
 [ext_resource type="Texture2D" uid="uid://4r1jihlybply" path="res://assets/stone.png" id="3_7ncm7"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1iskb"]
 texture = ExtResource("2_66ayh")
 texture_region_size = Vector2i(32, 32)
 0:0/0 = 0
+0:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+0:0/0/physics_layer_0/angular_velocity = 0.0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_a7ech"]
 texture = ExtResource("3_7ncm7")
 texture_region_size = Vector2i(32, 32)
 0:0/0 = 0
+0:0/0/physics_layer_0/linear_velocity = Vector2(0, 0)
+0:0/0/physics_layer_0/angular_velocity = 0.0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
 
 [sub_resource type="TileSet" id="TileSet_2ssff"]
 tile_size = Vector2i(32, 32)
+physics_layer_0/collision_layer = 1
 sources/0 = SubResource("TileSetAtlasSource_1iskb")
 sources/1 = SubResource("TileSetAtlasSource_a7ech")
 
@@ -25,7 +32,8 @@ script = ExtResource("1_dkx6i")
 [node name="Rooms" type="Node" parent="."]
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.2, 0.2)
+zoom = Vector2(3, 3)
+script = ExtResource("2_kg2po")
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = SubResource("TileSet_2ssff")

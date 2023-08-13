@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://Room.gd" id="1_dhbnw"]
 
-[node name="CharacterBody2D" type="RigidBody2D"]
+[node name="Room" type="RigidBody2D"]
 lock_rotation = true
 script = ExtResource("1_dhbnw")
 
