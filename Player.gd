@@ -1,22 +1,28 @@
 extends CharacterBody2D
 
-var id = 0
-var speed = 250
+var speed = 10000
+@onready var _animated_sprite = $AnimatedSprite2D
+
+
+func _ready():
+	process_priority = 10
 
 
 func get_input(delta):
-	velocity = Vector2()
+	if Input.is_action_pressed("left"):
+		_animated_sprite.play("walk_left")
+	elif Input.is_action_pressed("right"):
+		_animated_sprite.play("walk_right")
+	elif Input.is_action_pressed("down"):
+		_animated_sprite.play("walk_down")
+	elif Input.is_action_pressed("up"):
+		_animated_sprite.play("walk_up")
+	else:
+		_animated_sprite.stop()
 	
-	if Input.is_action_pressed('ui_right'):
-		velocity.x += 1 * delta
-	if Input.is_action_pressed('ui_left'):
-		velocity.x -= 1 * delta
-	if Input.is_action_pressed('ui_up'):
-		velocity.y -= 1 * delta
-	if Input.is_action_pressed('ui_down'):
-		velocity.y += 1 * delta
-		
-	velocity = velocity.normalized() * speed
+	var input_direction = Input.get_vector("left", "right", "up", "down")
+	velocity = input_direction.normalized() * speed * delta
+
 
 func _physics_process(delta):
 	get_input(delta)

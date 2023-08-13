@@ -5,14 +5,14 @@ var Player = preload("res://Player.tscn")
 @onready var Map = $TileMap
 
 var tile_size = 32
-var num_rooms = 50
-var min_size = 6
+var num_rooms = 30
+var min_size = 8
 var max_size = 12
-var horizontal_spread = 300
-var cull = 0.6
-var space_between_rooms = 1
+var horizontal_spread = 200
+var cull = 0.1
+var space_between_rooms = 3
 var size_fix_vector = Vector2(space_between_rooms, space_between_rooms) * tile_size
-var corridor_width = 2
+var corridor_width = 3
 
 var path
 
@@ -22,18 +22,21 @@ func _ready():
 	await make_rooms()
 	await get_tree().create_timer(1.1).timeout
 	await make_map()	
-	await place_player()
+	place_player()
 
 func place_player():
 	var player = Player.instantiate()
 	add_child(player)
-	$Camera2D.player = player
-	
+
 	var first_valid_room = null
 	for room in $Rooms.get_children():
 		if room.freeze == true:
 			first_valid_room = Room
 			break
+	
+	# player.global_position = first_valid_room.global_position
+	
+	$Camera2D.player = player
 
 func make_rooms():
 	for i in range(num_rooms):
